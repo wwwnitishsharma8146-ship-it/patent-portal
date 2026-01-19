@@ -24,11 +24,11 @@ app = Flask(__name__)
 # Configure CORS to properly handle credentials
 CORS(app, 
      supports_credentials=True,
-     origins=["http://localhost:5002", "http://127.0.0.1:5002"],
+     origins=["http://localhost:5002", "http://127.0.0.1:5002", "https://patent-portal-5.onrender.com"],
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "OPTIONS"])
 
-app.secret_key = 'your-secret-key-change-this-in-production'
+app.secret_key = 'uic-patent-portal-production-key-2026-secure'
 
 # Session configuration
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
