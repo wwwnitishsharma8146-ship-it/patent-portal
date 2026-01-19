@@ -302,9 +302,12 @@ def allowed_file(filename):
 
 # ========== DATABASE ==========
 def get_db():
-    conn = sqlite3.connect(DATABASE, timeout=20.0)
+    conn = sqlite3.connect(DATABASE, timeout=30.0)
     conn.row_factory = sqlite3.Row
     conn.execute('PRAGMA journal_mode=WAL;')
+    conn.execute('PRAGMA synchronous=NORMAL;')
+    conn.execute('PRAGMA cache_size=1000;')
+    conn.execute('PRAGMA temp_store=memory;')
     return conn
 
 def init_db():
