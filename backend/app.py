@@ -330,11 +330,6 @@ def init_db():
     )
     """)
 
-    try:
-        cur.execute("DROP TABLE IF EXISTS applications")
-    except:
-        pass
-    
     cur.execute("""
     CREATE TABLE IF NOT EXISTS applications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -370,11 +365,6 @@ def init_db():
     )
     """)
 
-    try:
-        cur.execute("DROP TABLE IF EXISTS files")
-    except:
-        pass
-    
     cur.execute("""
     CREATE TABLE IF NOT EXISTS files (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
