@@ -1,0 +1,15 @@
+Copy these headers into Row 1 of your Google Sheet (A1 to M1):
+
+A1: Application ID
+B1: Submission Date  
+C1: Full Name
+D1: Email
+E1: Department
+F1: Branch
+G1: Applicant Type
+H1: Contact Number
+I1: Patent Title
+J1: Patent Type
+K1: Description
+L1: Novelty
+M1: Team Members

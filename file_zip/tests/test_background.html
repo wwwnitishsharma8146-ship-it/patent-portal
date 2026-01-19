@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Background Image Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: 
+                linear-gradient(135deg, rgba(187, 195, 232, 0.85) 0%, rgba(118, 75, 162, 0.85) 100%), 
+                url('backend/static/cu-bg.jpg') center/cover no-repeat fixed;
+            background-color: #667eea;
+            min-height: 100vh;
+            color: white;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎨 Background Image Test</h1>
+        <p>If you can see this text clearly with a background image, the setup is working!</p>
+        <p>The background should show the Chandigarh University campus image with a gradient overlay.</p>
+    </div>
+</body>
+</html>

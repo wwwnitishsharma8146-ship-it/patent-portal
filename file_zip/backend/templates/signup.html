@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - UIC Patent Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #e92020;
+            --secondary: #b42c2c;
+            --accent: #0099CC;
+            --light: #F5F7FA;
+            --dark: #1A1A2E;
+            --gray: #6C757D;
+            --success: #28A745;
+            --error: #dc3545;
+            --border-radius: 10px;
+            --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, rgba(0, 51, 102, 0.7) 0%, rgba(0, 0, 0, 0) 100%), 
+                        url('{{ url_for("static", filename="images/cu-campus.jpg") }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .signup-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+        }
+
+        .signup-left {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .signup-right {
+            flex: 1.2;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .signup-left h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .signup-left p {
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .benefits {
+            text-align: left;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .benefit-item i {
+            margin-right: 12px;
+            color: var(--accent);
+            width: 20px;
+        }
+
+        .signup-form h2 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .signup-form p {
+            color: var(--gray);
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .form-group.required label:after {
+            content: " *";
+            color: var(--error);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 153, 204, 0.1);
+            outline: none;
+            background: white;
+        }
+
+        .form-group input.error,
+        .form-group select.error {
+            border-color: var(--error);
+            background: #fff5f5;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle input {
+            padding-right: 45px;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .password-toggle-btn:hover {
+            color: var(--dark);
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            font-size: 0.8rem;
+        }
+
+        .strength-bar {
+            height: 4px;
+            background: #e1e5e9;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+
+        .strength-weak { background: #dc3545; width: 25%; }
+        .strength-fair { background: #ffc107; width: 50%; }
+        .strength-good { background: #17a2b8; width: 75%; }
+        .strength-strong { background: #28a745; width: 100%; }
+
+        .signup-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px 0;
+        }
+
+        .signup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 51, 102, 0.3);
+        }
+
+        .signup-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-link {
+            text-align: center;
+            color: var(--gray);
+        }
+
+        .login-link a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .signup-container {
+                flex-direction: column;
+                max-width: 500px;
+            }
+            
+            .signup-left {
+                padding: 30px 25px;
+            }
+            
+            .signup-right {
+                padding: 30px 25px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .signup-left h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body >
+    <div class="signup-container">
+        <!-- Left Side - Branding -->
+        <div class="signup-left">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h1>Join UIC Portal</h1>
+                <p>Create your account to start submitting patent applications and collaborate with the innovation community</p>
+            </div>
+            
+            <div class="benefits">
+                <div class="benefit-item">
+                    <i class="fas fa-rocket"></i>
+                    <span>Fast Application Process</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-users"></i>
+                    <span>Team Collaboration</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Document Management</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Progress Tracking</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Academic Excellence</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Side - Signup Form -->
+        <div class="signup-right">
+            <div class="signup-form">
+                <h2>Create Account</h2>
+                <p>Fill in your details to get started with patent submissions</p>
+                
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert {{ category }}">
+                                <i class="fas fa-{% if category == 'error' %}exclamation-circle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" id="signupForm">
+                    <!-- Personal Information -->
+                    <div class="form-row">
+                        <div class="form-group required">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group required">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Type and Department -->
+                    <div class="form-row">
+                        <div class="form-group required">
+                            <label for="user_type">Account Type</label>
+                            <select id="user_type" name="user_type" required>
+                                <option value="">Select Account Type</option>
+                                <option value="student">Student</option>
+                                <option value="faculty">Faculty Member</option>
+                                <option value="researcher">Research Scholar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Department</label>
+                            <select id="department" name="department">
+                                <option value="">Select Department</option>
+                                <option value="UIC">University Institute of Computing</option>
+                                <!-- <option value="MCI"></option>
+                                <option value="BCA">BCA</option>
+                                <option value="other">Other</option> -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Branch and Contact -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="branch">Branch/Specialization</label>
+                            <input type="text" id="branch" name="branch" placeholder="Enter your branch or specialization">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact">Contact Number</label>
+                            <input type="tel" id="contact" name="contact" placeholder="Enter your contact number">
+                        </div>
+                    </div>
+                    
+                    <!-- Password Fields -->
+                    <div class="form-row">
+                        <div class="form-group required">
+                            <label for="password">Password</label>
+                            <div class="password-toggle">
+                                <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+                                <button type="button" class="password-toggle-btn" onclick="togglePassword('password', 'passwordIcon1')">
+                                    <i class="fas fa-eye" id="passwordIcon1"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-bar">
+                                    <div class="strength-fill" id="strengthFill"></div>
+                                </div>
+                                <span id="strengthText">Password strength</span>
+                            </div>
+                        </div>
+                        <div class="form-group required">
+                            <label for="confirm_password">Confirm Password</label>
+                            <div class="password-toggle">
+                                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+                                <button type="button" class="password-toggle-btn" onclick="togglePassword('confirm_password', 'passwordIcon2')">
+                                    <i class="fas fa-eye" id="passwordIcon2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="signup-btn" id="signupBtn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                    
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <span>Creating your account...</span>
+                    </div>
+                </form>
+                
+                <div class="login-link">
+                    Already have an account? <a href="{{ url_for('login') }}">Sign in here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form validation and submission
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            showLoading(true);
+        });
+        
+        function validateForm() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const userType = document.getElementById('user_type').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            // Clear previous errors
+            clearErrors();
+            
+            let isValid = true;
+            
+            // Name validation
+            if (!name || name.length < 2) {
+                showFieldError('name', 'Please enter a valid full name');
+                isValid = false;
+            }
+            
+            // Email validation
+            if (!email || !isValidEmail(email)) {
+                showFieldError('email', 'Please enter a valid email address');
+                isValid = false;
+            }
+            
+            // User type validation
+            if (!userType) {
+                showFieldError('user_type', 'Please select an account type');
+                isValid = false;
+            }
+            
+            // Password validation
+            if (!password || password.length < 6) {
+                showFieldError('password', 'Password must be at least 6 characters long');
+                isValid = false;
+            }
+            
+            // Confirm password validation
+            if (password !== confirmPassword) {
+                showFieldError('confirm_password', 'Passwords do not match');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                showError('Please fix the errors above and try again');
+            }
+            
+            return isValid;
+        }
+        
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            field.classList.add('error');
+            
+            // Create error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error';
+            errorDiv.style.color = 'var(--error)';
+            errorDiv.style.fontSize = '0.8rem';
+            errorDiv.style.marginTop = '5px';
+            errorDiv.textContent = message;
+            
+            // Insert after field
+            field.parentNode.insertBefore(errorDiv, field.nextSibling);
+        }
+        
+        function clearErrors() {
+            // Remove error classes
+            document.querySelectorAll('.error').forEach(field => {
+                field.classList.remove('error');
+            });
+            
+            // Remove error messages
+            document.querySelectorAll('.field-error').forEach(error => {
+                error.remove();
+            });
+            
+            // Remove general alerts
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.remove();
+            });
+        }
+        
+        function showError(message) {
+            const alert = document.createElement('div');
+            alert.className = 'alert error';
+            alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            
+            const form = document.getElementById('signupForm');
+            form.parentNode.insertBefore(alert, form);
+            
+            // Scroll to top
+            alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function showLoading(show) {
+            const signupBtn = document.getElementById('signupBtn');
+            const loading = document.getElementById('loading');
+            
+            if (show) {
+                signupBtn.disabled = true;
+                signupBtn.style.display = 'none';
+                loading.style.display = 'block';
+            } else {
+                signupBtn.disabled = false;
+                signupBtn.style.display = 'block';
+                loading.style.display = 'none';
+            }
+        }
+        
+        function togglePassword(fieldId, iconId) {
+            const passwordInput = document.getElementById(fieldId);
+            const passwordIcon = document.getElementById(iconId);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.className = 'fas fa-eye';
+            }
+        }
+        
+        // Password strength checker
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthFill = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+            
+            let strength = 0;
+            let text = 'Very Weak';
+            let className = '';
+            
+            if (password.length >= 6) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            switch (strength) {
+                case 0:
+                case 1:
+                    text = 'Very Weak';
+                    className = 'strength-weak';
+                    break;
+                case 2:
+                    text = 'Weak';
+                    className = 'strength-weak';
+                    break;
+                case 3:
+                    text = 'Fair';
+                    className = 'strength-fair';
+                    break;
+                case 4:
+                    text = 'Good';
+                    className = 'strength-good';
+                    break;
+                case 5:
+                    text = 'Strong';
+                    className = 'strength-strong';
+                    break;
+            }
+            
+            strengthFill.className = `strength-fill ${className}`;
+            strengthText.textContent = text;
+        });
+        
+        // Contact number formatting
+        document.getElementById('contact').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9+]/g, '');
+            
+            if (this.value.length > 15) {
+                this.value = this.value.substring(0, 15);
+            }
+        });
+        
+        // Auto-focus on name field
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('name').focus();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; max-width: 600px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        input, button { padding: 8px; margin: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        #log { background: #f5f5f5; padding: 10px; white-space: pre-wrap; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Simple Login Test</h1>
+    
+    <div class="section">
+        <h2>1. Create Account</h2>
+        <input type="text" id="signupName" placeholder="Full Name" value="Test User">
+        <input type="email" id="signupEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="signupPassword" placeholder="Password" value="password123">
+        <select id="signupType">
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+        </select>
+        <br>
+        <button onclick="signup()">Create Account</button>
+    </div>
+    
+    <div class="section">
+        <h2>2. Login</h2>
+        <input type="email" id="loginEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="loginPassword" placeholder="Password" value="password123">
+        <br>
+        <button onclick="login()">Login</button>
+    </div>
+    
+    <div class="section">
+        <h2>3. Test Session</h2>
+        <button onclick="testSession()">Check Session</button>
+        <button onclick="testSubmit()">Test Submit</button>
+    </div>
+    
+    <div class="section">
+        <h2>Debug Log</h2>
+        <div id="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5002';
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue';
+            logDiv.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        async function signup() {
+            try {
+                log('Creating account...');
+                
+                const formData = new FormData();
+                formData.append('name', document.getElementById('signupName').value);
+                formData.append('email', document.getElementById('signupEmail').value);
+                formData.append('password', document.getElementById('signupPassword').value);
+                formData.append('confirm_password', document.getElementById('signupPassword').value);
+                formData.append('user_type', document.getElementById('signupType').value);
+                formData.append('department', 'computer');
+                formData.append('branch', 'Computer Science');
+                formData.append('contact', '1234567890');
+                
+                const response = await fetch(`${BASE_URL}/signup`, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                
+                log(`Signup response: ${response.status}`);
+                
+                if (response.status === 302) {
+                    log('✅ Account created successfully!', 'success');
+                } else {
+                    log('❌ Signup failed', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Signup error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function login() {
+            try {
+                log('Logging in...');
+                
+                const formData = new FormData();
+                formData.append('email', document.getElementById('loginEmail').value);
+                formData.append('password', document.getElementById('loginPassword').value);
+                
+                const response = await fetch(`${BASE_URL}/login`, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                
+                log(`Login response: ${response.status}`);
+                
+                if (response.status === 302) {
+                    log('✅ Login successful!', 'success');
+                    // Auto-test session after login
+                    setTimeout(testSession, 1000);
+                } else {
+                    log('❌ Login failed', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Login error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testSession() {
+            try {
+                log('Testing session...');
+                
+                const response = await fetch(`${BASE_URL}/test-session`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    log(`Session data: ${JSON.stringify(data, null, 2)}`, 'info');
+                    
+                    if (data.is_authenticated) {
+                        log('✅ Session is working!', 'success');
+                    } else {
+                        log('❌ Not authenticated', 'error');
+                    }
+                } else {
+                    log(`❌ Session test failed: ${response.status}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Session test error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testSubmit() {
+            try {
+                log('Testing form submission...');
+                
+                const formData = new FormData();
+                formData.append('patentTitle', 'Test Patent');
+                formData.append('patentType', 'utility');
+                formData.append('description', 'Test description');
+                formData.append('novelty', 'Test novelty');
+                formData.append('applicantType', 'student');
+                formData.append('members', '[]');
+                
+                const response = await fetch(`${BASE_URL}/submit`, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                
+                log(`Submit response: ${response.status}`);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    log(`✅ Submit successful! ID: ${data.applicationId}`, 'success');
+                } else if (response.status === 401) {
+                    log('❌ Submit failed: Not authenticated', 'error');
+                } else {
+                    const text = await response.text();
+                    log(`❌ Submit failed: ${response.status} - ${text}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Submit error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-test session on page load
+        window.addEventListener('load', function() {
+            log('Page loaded. Testing initial session...');
+            testSession();
+        });
+    </script>
+</body>
+</html>
