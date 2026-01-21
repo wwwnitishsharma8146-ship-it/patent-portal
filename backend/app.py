@@ -10,14 +10,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import hashlib
 import requests
 import sys
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from googleapiclient.errors import HttpError
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from googleapiclient.errors import HttpError
 
 app = Flask(__name__)
 
@@ -48,185 +40,38 @@ CREDENTIALS_FILE = 'service_account_key.json'  # Place this file in your app dir
 SCOPES = ['https://script.google.com/macros/s/AKfycbyZ2RW7XcUUXMORJXI4LlETTGoQkoCoPAWGEXaLms8OqenA2hwcurYY9R6jdBqQgblx6A/exec']
 
 # ========== GOOGLE SHEETS CONFIGURATION ==========
-ENABLE_GOOGLE_SHEETS_SYNC = True
+ENABLE_GOOGLE_SHEETS_SYNC = False  # Disabled for faster deployment
 APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5wDVBsJZ6LiUM44BBCey_W0fn4ftO66jLbSc3vvPSCY7BF1gn8jv7X4ZXTLyFfRYp/exec'
 
 # ========== GOOGLE DRIVE FILE UPLOAD CONFIGURATION ==========
-ENABLE_GOOGLE_DRIVE_UPLOAD = True
+ENABLE_GOOGLE_DRIVE_UPLOAD = False  # Disabled for faster deployment
 GOOGLE_DRIVE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFr7rS0xXEiHeFHm6homLqwAccwokjRgsAm3480CppLvdEIYA6sCju5E1I0XD_J4s/exec'
 
-# ========== GOOGLE DRIVE FUNCTIONS ==========
+# ========== GOOGLE DRIVE FUNCTIONS (DISABLED FOR SPEED) ==========
 def upload_file_to_google_drive(file_path, application_id, original_filename):
-    """Upload file to Google Drive using Apps Script"""
-    if not ENABLE_GOOGLE_DRIVE_UPLOAD:
-        print("⚠️  Google Drive upload is disabled")
-        return None
-    
-    try:
-        import base64
-        import mimetypes
-        
-        # Detect MIME type based on file extension
-        mime_type, _ = mimetypes.guess_type(original_filename)
-        if not mime_type:
-            # Default to PDF if can't detect
-            mime_type = 'application/pdf'
-        
-        print(f"📄 File type detected: {mime_type}")
-        
-        # Read file and encode to base64
-        with open(file_path, 'rb') as f:
-            file_content = f.read()
-            file_base64 = base64.b64encode(file_content).decode('utf-8')
-        
-        # Prepare payload for Google Apps Script
-        payload = {
-            'fileName': f"{application_id}_{original_filename}",
-            'fileData': file_base64,
-            'mimeType': mime_type,
-            'applicationId': application_id
-        }
-        
-        print(f"📤 Uploading {original_filename} ({mime_type}) to Google Drive...")
-        print(f"   File size: {len(file_content)} bytes")
-        
-        # Send to Google Apps Script
-        response = requests.post(GOOGLE_DRIVE_SCRIPT_URL, json=payload, timeout=30)
-        
-        if response.status_code == 200:
-            result = response.json()
-            if result.get('success'):
-                print(f"✅ File uploaded to Google Drive: {original_filename}")
-                print(f"   Drive URL: {result.get('fileUrl')}")
-                return result.get('fileUrl')
-            else:
-                print(f"❌ Google Drive upload failed: {result.get('error', 'Unknown error')}")
-                return None
-        else:
-            print(f"❌ Google Drive HTTP error: {response.status_code}")
-            print(f"   Response: {response.text[:200]}")
-            return None
-            
-    except Exception as e:
-        print(f"❌ Google Drive upload error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return None
+    """Upload file to Google Drive using Apps Script - DISABLED"""
+    print("⚠️  Google Drive upload is disabled for faster deployment")
+    return None
+
 def get_drive_service():
-    """Authenticate and return Google Drive service"""
-    try:
-        if not os.path.exists(CREDENTIALS_FILE):
-            print(f"⚠️  {CREDENTIALS_FILE} not found. Google Drive disabled.")
-            return None
-        
-        credentials = service_account.Credentials.from_service_account_file(
-            CREDENTIALS_FILE, scopes=SCOPES)
-        
-        service = build('drive', 'v3', credentials=credentials)
-        print("✅ Google Drive authenticated")
-        return service
-    except Exception as e:
-        print(f"⚠️  Google Drive auth error: {str(e)}")
-        return None
+    """Authenticate and return Google Drive service - DISABLED"""
+    print("⚠️  Google Drive service is disabled for faster deployment")
+    return None
 
 def get_or_create_folder(service, parent_folder_id, folder_name):
-    """Get existing folder or create new one"""
-    try:
-        query = f"name='{folder_name}' and '{parent_folder_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
-        results = service.files().list(
-            q=query,
-            spaces='drive',
-            fields='files(id, name)',
-            pageSize=1
-        ).execute()
-        
-        items = results.get('files', [])
-        
-        if items:
-            print(f"✅ Found folder: {folder_name}")
-            return items[0]['id']
-        else:
-            file_metadata = {
-                'name': folder_name,
-                'mimeType': 'application/vnd.google-apps.folder',
-                'parents': [parent_folder_id]
-            }
-            
-            folder = service.files().create(
-                body=file_metadata,
-                fields='id'
-            ).execute()
-            
-            print(f"✅ Created folder: {folder_name}")
-            return folder.get('id')
-    
-    except Exception as e:
-        print(f"⚠️  Folder error: {str(e)}")
-        return parent_folder_id
+    """Get existing folder or create new one - DISABLED"""
+    print("⚠️  Google Drive folder creation is disabled")
+    return parent_folder_id
 
 def upload_to_google_drive(file_path, application_id, filename):
-    """Upload PDF file to Google Drive and store metadata"""
-    try:
-        service = get_drive_service()
-        if not service:
-            return {
-                'success': False,
-                'file_id': None,
-                'file_url': None,
-                'error': 'Google Drive service unavailable'
-            }
-        
-        # Create folder structure: PatentApplications > Application ID
-        parent_folder = get_or_create_folder(service, GOOGLE_DRIVE_FOLDER_ID, 'PatentApplications')
-        app_folder = get_or_create_folder(service, parent_folder, application_id)
-        
-        # Prepare file metadata for Google Drive
-        file_metadata = {
-            'name': filename,
-            'parents': [app_folder]
-        }
-        
-        # Upload file with resume capability
-        media = MediaFileUpload(file_path, resumable=True)
-        
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id, webViewLink, name'
-        ).execute()
-        
-        file_id = file.get('id')
-        file_url = file.get('webViewLink')
-        
-        print(f"📤 {filename} uploaded successfully")
-        print(f"   File ID: {file_id}")
-        print(f"   File URL: {file_url}")
-        
-        return {
-            'success': True,
-            'file_id': file_id,
-            'file_url': file_url,
-            'error': None
-        }
-    
-    except HttpError as error:
-        error_msg = f"Drive API error: {error}"
-        print(f"⚠️  {error_msg}")
-        return {
-            'success': False,
-            'file_id': None,
-            'file_url': None,
-            'error': error_msg
-        }
-    except Exception as e:
-        error_msg = f"Upload error: {str(e)}"
-        print(f"⚠️  {error_msg}")
-        return {
-            'success': False,
-            'file_id': None,
-            'file_url': None,
-            'error': error_msg
-        }
+    """Upload PDF file to Google Drive and store metadata - DISABLED"""
+    print("⚠️  Google Drive upload is disabled for faster deployment")
+    return {
+        'success': False,
+        'file_id': None,
+        'file_url': None,
+        'error': 'Google Drive disabled for faster deployment'
+    }
 
 # ========== GOOGLE SHEETS FUNCTION ==========
 def send_to_google_sheet_via_apps_script(application_data, team_members=None):
