@@ -675,6 +675,10 @@ if __name__ == "__main__":
     debug = os.environ.get('FLASK_ENV') != 'production'
     app.run(host='0.0.0.0', port=port, debug=debug)
 
-# For Vercel deployment
-def handler(request):
-    return app(request.environ, lambda status, headers: None)
+# For Vercel deployment - serverless function handler
+def handler(request, response):
+    """Vercel serverless function handler"""
+    return app(request, response)
+
+# For WSGI deployment
+application = app
