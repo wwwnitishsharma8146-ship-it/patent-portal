@@ -321,12 +321,8 @@ def health():
         "version": "1.0.0"
     })
 
-# Vercel serverless function handler - expose the app variable
-app = app
-
-# Alternative names that Vercel might look for
+# Expose app for Vercel
 application = app
-handler = app
 
 # For local development
 if __name__ == "__main__":
