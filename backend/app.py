@@ -32,7 +32,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 DATABASE = "database.db"
-ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'zip'}
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
 
 # ========== GOOGLE DRIVE CONFIGURATION ==========
 GOOGLE_DRIVE_FOLDER_ID = 'YOUR_GOOGLE_DRIVE_FOLDER_ID_HERE'  # Replace with your folder ID
@@ -668,6 +668,33 @@ def update_patent_status():
             "success": False,
             "message": f"Error updating status: {str(e)}"
         }), 500
+
+# ========== DOCUMENT DOWNLOAD ROUTE ==========
+@app.route("/download/idf-form")
+def download_idf_form():
+    """Download IDF Form Template"""
+    try:
+        from flask import send_file
+        import os
+        
+        # Path to your existing IDF form document
+        file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'folder', 'Invention Disclosure Form (IDF) (Updated 24th April 2025) (3).docx')
+        
+        # Check if file exists
+        if not os.path.exists(file_path):
+            flash('IDF Form template not found', 'error')
+            return redirect(url_for('home'))
+        
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name='IDF_Form_Template.docx',
+            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        
+    except Exception as e:
+        flash(f'Error downloading IDF form: {str(e)}', 'error')
+        return redirect(url_for('home'))
 
 if __name__ == "__main__":
     import os
