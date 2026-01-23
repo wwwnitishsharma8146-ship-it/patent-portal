@@ -39,7 +39,7 @@ GOOGLE_DRIVE_FOLDER_ID = 'YOUR_GOOGLE_DRIVE_FOLDER_ID_HERE'  # Replace with your
 CREDENTIALS_FILE = 'service_account_key.json'  # Place this file in your app directory
 SCOPES = ['https://script.google.com/macros/s/AKfycbyZ2RW7XcUUXMORJXI4LlETTGoQkoCoPAWGEXaLms8OqenA2hwcurYY9R6jdBqQgblx6A/exec']
 
-# ========== GOOGLE SHEETS CONFIGURATION ==========
+# ========  == GOOGLE SHEETS CONFIGURATION ==========
 ENABLE_GOOGLE_SHEETS_SYNC = False  # Disabled for faster deployment
 APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5wDVBsJZ6LiUM44BBCey_W0fn4ftO66jLbSc3vvPSCY7BF1gn8jv7X4ZXTLyFfRYp/exec'
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Root level Flask app entrypoint for Vercel deployment.
-This ensures Vercel can find the Flask app at the expected location.
+Alternative entrypoint for Vercel deployment.
 """
 
 import sys
@@ -22,9 +21,9 @@ except ImportError:
     @app.route('/')
     def hello():
         return jsonify({
-            "message": "UIC Patent Portal",
+            "message": "UIC Patent Portal - Index Entry",
             "status": "Import Error - Check logs",
-            "error": "Could not import main app"
+            "error": "Could not import main app from api directory"
         })
     
     application = app
