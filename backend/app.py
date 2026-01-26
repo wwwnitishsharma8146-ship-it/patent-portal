@@ -10,6 +10,23 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import hashlib
 import requests
 import sys
+from flask_mail import Mail, Message
+import secrets
+import time
+
+# Load environment variables from .env file
+def load_env():
+    """Load environment variables from .env file"""
+    env_path = os.path.join(os.path.dirname(__file__), '.env')
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ[key] = value
+
+load_env()
 
 app = Flask(__name__)
 
@@ -26,6 +43,18 @@ app.secret_key = 'uic-patent-portal-production-key-2026-secure'
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = False
 
+# Email configuration - Using free SMTP service
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'www.nitishsharma8146@gmail.com')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'your-app-password-here')
+app.config['MAIL_DEFAULT_SENDER'] = 'UIC Patent Portal <uicpatentportal@gmail.com>'
+
+# Initialize Flask-Mail
+mail = Mail(app)
+
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -40,8 +69,8 @@ CREDENTIALS_FILE = 'service_account_key.json'  # Place this file in your app dir
 SCOPES = ['https://script.google.com/macros/s/AKfycbyZ2RW7XcUUXMORJXI4LlETTGoQkoCoPAWGEXaLms8OqenA2hwcurYY9R6jdBqQgblx6A/exec']
 
 # ========  == GOOGLE SHEETS CONFIGURATION ==========
-ENABLE_GOOGLE_SHEETS_SYNC = False  # Disabled for faster deployment
-APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5wDVBsJZ6LiUM44BBCey_W0fn4ftO66jLbSc3vvPSCY7BF1gn8jv7X4ZXTLyFfRYp/exec'
+ENABLE_GOOGLE_SHEETS_SYNC = True  # Enabled for Google Sheets integration
+APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby44PN4TqP2Q2Y9a-AtE-2jnntE6azhlJc_lyB5Zguco0FFA3n-KCDV37-MXdZzhShd-g/exec'
 
 # ========== GOOGLE DRIVE FILE UPLOAD CONFIGURATION ==========
 ENABLE_GOOGLE_DRIVE_UPLOAD = False  # Disabled for faster deployment
@@ -223,6 +252,18 @@ def init_db():
     )
     """)
 
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT,
+        token TEXT UNIQUE,
+        expires_at INTEGER,
+        used INTEGER DEFAULT 0,
+        created_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users (user_id)
+    )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -356,6 +397,293 @@ def logout():
     session.clear()
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
+
+# ========== PASSWORD RESET ROUTES ==========
+def send_password_reset_email(user_email, user_name, reset_token):
+    """Send password reset confirmation email"""
+    try:
+        confirm_url = url_for('confirm_reset', token=reset_token, _external=True)
+        
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #e92020 0%, #bfdbe5 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                .button {{ display: inline-block; background: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 10px; }}
+                .button.cancel {{ background: #6c757d; }}
+                .footer {{ text-align: center; margin-top: 30px; font-size: 12px; color: #666; }}
+                .warning {{ background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+                .user-info {{ background: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🔐 Password Reset Request</h1>
+                    <p>UIC Patent Portal - Chandigarh University</p>
+                </div>
+                <div class="content">
+                    <h2>Hello {user_name},</h2>
+                    <p>We received a request to reset the password for your UIC Patent Portal account.</p>
+                    
+                    <div class="user-info">
+                        <strong>Account Details:</strong><br>
+                        Name: {user_name}<br>
+                        Email: {user_email}
+                    </div>
+                    
+                    <p><strong>⚠️ IMPORTANT: We need your confirmation before proceeding.</strong></p>
+                    <p>Click the button below to confirm that you want to reset your password:</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="{confirm_url}" class="button">✅ Yes, Reset My Password</a>
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>🛡️ Security Notice:</strong>
+                        <ul>
+                            <li>This confirmation link will expire in <strong>1 hour</strong></li>
+                            <li>If you didn't request this reset, please ignore this email</li>
+                            <li>Your password will NOT be changed until you confirm</li>
+                            <li>Never share this link with anyone</li>
+                        </ul>
+                    </div>
+                    
+                    <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 5px; font-family: monospace;">
+                        {confirm_url}
+                    </p>
+                    
+                    <p><strong>If you didn't request this password reset:</strong><br>
+                    Simply ignore this email. Your password will remain unchanged and secure.</p>
+                    
+                    <p>Best regards,<br>
+                    <strong>UIC Patent Portal Team</strong><br>
+                    University Innovation Cell<br>
+                    Chandigarh University</p>
+                </div>
+                <div class="footer">
+                    <p>This is an automated security email. Please do not reply to this message.</p>
+                    <p>© 2026 Chandigarh University - University Innovation Cell</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_body = f"""
+        Password Reset Confirmation - UIC Patent Portal
+        
+        Hello {user_name},
+        
+        We received a request to reset the password for your UIC Patent Portal account.
+        
+        IMPORTANT: We need your confirmation before proceeding.
+        
+        Click this link to confirm that you want to reset your password:
+        {confirm_url}
+        
+        SECURITY NOTICE:
+        - This confirmation link will expire in 1 hour
+        - If you didn't request this reset, please ignore this email
+        - Your password will NOT be changed until you confirm
+        
+        If you didn't request a password reset, simply ignore this email.
+        
+        Best regards,
+        UIC Patent Portal Team
+        University Innovation Cell
+        Chandigarh University
+        """
+        
+        msg = Message(
+            subject='Confirm Password Reset - UIC Patent Portal',
+            recipients=[user_email],
+            html=html_body,
+            body=text_body
+        )
+        
+        mail.send(msg)
+        return True
+        
+    except Exception as e:
+        print(f"Error sending email: {str(e)}")
+        return False
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    """Handle forgot password requests"""
+    if request.method == "POST":
+        try:
+            email = request.form.get('email')
+            
+            if not email:
+                flash('Please enter your email address', 'error')
+                return redirect(url_for('forgot_password'))
+            
+            # Check if user exists
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM users WHERE email = ? AND is_active = 1", (email,))
+            user = cur.fetchone()
+            
+            if user:
+                # Generate reset token
+                reset_token = secrets.token_urlsafe(32)
+                expires_at = int(time.time()) + 3600  # 1 hour from now
+                
+                # Store reset token in database
+                cur.execute("""
+                    INSERT INTO password_reset_tokens (user_id, token, expires_at, created_at)
+                    VALUES (?, ?, ?, ?)
+                """, (user[1], reset_token, expires_at, datetime.now().isoformat()))
+                
+                conn.commit()
+                
+                # Send password reset email
+                email_sent = send_password_reset_email(user[3], user[2], reset_token)
+                
+                if email_sent:
+                    flash(f'Password reset confirmation has been sent to {email}. Please check your email and click the confirmation link.', 'success')
+                else:
+                    # For development/demo purposes, always show the confirmation link when email fails
+                    confirm_url = url_for('confirm_reset', token=reset_token, _external=True)
+                    flash('Email service not configured. Use this demo confirmation link:', 'info')
+                    flash(f'{confirm_url}', 'success')
+                
+            else:
+                # Don't reveal if email exists or not for security
+                flash(f'If an account with {email} exists, a password reset link has been sent.', 'info')
+            
+            conn.close()
+            return redirect(url_for('forgot_password'))
+            
+        except Exception as e:
+            flash(f'Error processing request: {str(e)}', 'error')
+            return redirect(url_for('forgot_password'))
+    
+    return render_template("forgot_password.html")
+
+@app.route("/confirm-reset/<token>", methods=["GET"])
+def confirm_reset(token):
+    """Show password reset confirmation page"""
+    try:
+        # Find valid reset token
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT rt.*, u.* FROM password_reset_tokens rt
+            JOIN users u ON rt.user_id = u.user_id
+            WHERE rt.token = ? AND rt.used = 0 AND rt.expires_at > ?
+        """, (token, int(time.time())))
+        
+        result = cur.fetchone()
+        
+        if not result:
+            flash('Invalid or expired confirmation link. Please request a new password reset.', 'error')
+            return redirect(url_for('forgot_password'))
+        
+        # Extract user data
+        user_data = result[6:]   # users columns
+        
+        conn.close()
+        return render_template("confirm_reset.html", 
+                             token=token,
+                             user_name=user_data[2],
+                             user_email=user_data[3],
+                             user_department=user_data[6])
+        
+    except Exception as e:
+        flash(f'Error loading confirmation page: {str(e)}', 'error')
+        return redirect(url_for('forgot_password'))
+
+@app.route("/cancel-reset/<token>", methods=["GET"])
+def cancel_reset(token):
+    """Cancel password reset request"""
+    try:
+        # Mark token as used to prevent further use
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("UPDATE password_reset_tokens SET used = 1 WHERE token = ?", (token,))
+        conn.commit()
+        conn.close()
+        
+        flash('Password reset request has been cancelled. Your password remains unchanged.', 'info')
+        return redirect(url_for('login'))
+        
+    except Exception as e:
+        flash(f'Error cancelling reset: {str(e)}', 'error')
+        return redirect(url_for('login'))
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    """Handle password reset with token - requires confirmation first"""
+    try:
+        # Find valid reset token
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT rt.*, u.* FROM password_reset_tokens rt
+            JOIN users u ON rt.user_id = u.user_id
+            WHERE rt.token = ? AND rt.used = 0 AND rt.expires_at > ?
+        """, (token, int(time.time())))
+        
+        result = cur.fetchone()
+        
+        if not result:
+            flash('Invalid or expired reset link. Please request a new password reset.', 'error')
+            return redirect(url_for('forgot_password'))
+        
+        # Extract token and user data
+        token_data = result[:6]  # password_reset_tokens columns
+        user_data = result[6:]   # users columns
+        
+        # Check if this is a GET request (coming from confirmation)
+        if request.method == "GET":
+            # Check if user came from confirmation (has referrer)
+            referrer = request.referrer
+            if not referrer or 'confirm-reset' not in referrer:
+                # Redirect to confirmation page first
+                return redirect(url_for('confirm_reset', token=token))
+        
+        if request.method == "POST":
+            password = request.form.get('password')
+            confirm_password = request.form.get('confirm_password')
+            
+            if not password or not confirm_password:
+                flash('Please fill in all fields', 'error')
+                return render_template("reset_password.html")
+            
+            if password != confirm_password:
+                flash('Passwords do not match', 'error')
+                return render_template("reset_password.html")
+            
+            if len(password) < 8:
+                flash('Password must be at least 8 characters long', 'error')
+                return render_template("reset_password.html")
+            
+            # Update password and mark token as used
+            new_password_hash = generate_password_hash(password)
+            cur.execute("UPDATE users SET password_hash = ? WHERE user_id = ?", 
+                       (new_password_hash, user_data[1]))
+            cur.execute("UPDATE password_reset_tokens SET used = 1 WHERE token = ?", (token,))
+            
+            conn.commit()
+            conn.close()
+            
+            flash('Password reset successful! You can now login with your new password.', 'success')
+            return redirect(url_for('login'))
+        
+        conn.close()
+        return render_template("reset_password.html")
+        
+    except Exception as e:
+        flash(f'Error resetting password: {str(e)}', 'error')
+        return redirect(url_for('forgot_password'))
 
 # ========== MAIN ROUTES ==========
 @app.route("/")
