@@ -70,7 +70,7 @@ SCOPES = ['https://script.google.com/macros/s/AKfycbyZ2RW7XcUUXMORJXI4LlETTGoQko
 
 # ========  == GOOGLE SHEETS CONFIGURATION ==========
 ENABLE_GOOGLE_SHEETS_SYNC = True  # Enabled for Google Sheets integration
-APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby44PN4TqP2Q2Y9a-AtE-2jnntE6azhlJc_lyB5Zguco0FFA3n-KCDV37-MXdZzhShd-g/exec'
+APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyp5t3kl7z1e2CLzLP4qJ-Qs2_OZXCd7UTpQNqrIiD7l8MHibJaNdIOX1NdpFlwLZ0F/exec'
 
 # ========== GOOGLE DRIVE FILE UPLOAD CONFIGURATION ==========
 ENABLE_GOOGLE_DRIVE_UPLOAD = False  # Disabled for faster deployment

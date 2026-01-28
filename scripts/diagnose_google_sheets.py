@@ -11,7 +11,7 @@ def test_google_script_access():
     print("🔍 DIAGNOSING GOOGLE SHEETS INTEGRATION")
     print("=" * 60)
     
-    url = 'https://script.google.com/macros/s/AKfycby44PN4TqP2Q2Y9a-AtE-2jnntE6azhlJc_lyB5Zguco0FFA3n-KCDV37-MXdZzhShd-g/exec'
+    url = 'https://script.google.com/macros/s/AKfycbyp5t3kl7z1e2CLzLP4qJ-Qs2_OZXCd7UTpQNqrIiD7l8MHibJaNdIOX1NdpFlwLZ0F/exec'
     
     # Test 1: GET request (should work if script is deployed)
     print("1. 🌐 Testing GET request...")
